@@ -1,0 +1,66 @@
+---
+version: "3"
+
+tasks:
+  run:
+    deps:
+      - generate
+    summary: Runs the frontend mobile app
+    cmds:
+      - echo "Make sure your EXPO_PUBLIC_API is set in your frontend/.env file!"
+      - npm run start
+  run-android:
+    deps:
+      - generate
+    summary: Runs the frontend mobile app for Android
+    cmds:
+      - npm run android
+  run-ios:
+    deps:
+      - generate
+    summary: Runs the frontend mobile app for iOS
+    cmds:
+      - npm run ios
+  run-web:
+    deps:
+      - generate
+    summary: Runs the frontend mobile app in a web view
+    cmds:
+      - npm run web
+  generate:
+    deps:
+      - install
+    aliases:
+      - gen
+    summary: Generate client types from OpenAPI spec
+    sources:
+      - ../openapi.yaml
+    generates:
+      - api/schema.d.ts
+    cmds:
+      - npm run generate
+  install:
+    summary: Installs all dependencies
+    sources:
+      - package.json
+    generates:
+      - node_modules/**
+    cmds:
+      - npm install
+  clean:
+    summary: Delete build files
+    cmds:
+      - rm -rf node_modules
+      - rm -f api/schema.d.ts
+  test:
+    deps:
+      - generate
+    summary: Run frontend tests
+    cmds:
+      - npm run test
+  check:
+    deps:
+      - generate
+    summary: Run static analysis checks
+    cmds:
+      - npm run check

@@ -1,0 +1,79 @@
+---
+name: backend-ci
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "backend/**"
+      - "openapi.yaml"
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "backend/**"
+      - "openapi.yaml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-build:
+    name: "Back End: Lint and Build"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.21.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install backend linter
+        run: >
+          go install
+          github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+      - name: Check backend
+        run: task backend:check
+
+      - name: Build backend
+        run: task backend:build
+
+  test:
+    name: "Back End: Test"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.21.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install Task
+        uses: arduino/setup-task@v1
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tests
+        run: task backend:test
+...
